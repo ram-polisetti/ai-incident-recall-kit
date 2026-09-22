@@ -1,0 +1,12 @@
+{
+  "subject": "[disparity-monitor] RED: hirescreen-clf fairness decay detected",
+  "body": "Model: hirescreen-clf\nStatus: RED\nRun: run-2026-09-21-003",
+  "model": "hirescreen-clf",
+  "run_id": "run-2026-09-21-003",
+  "status": "red",
+  "metrics": [
+    {"metric": "demographic_parity_diff", "value": 0.214,
+     "detail": "exceeds 0.10 limit for 3 consecutive runs"}
+  ],
+  "owner": "ml-platform"
+}

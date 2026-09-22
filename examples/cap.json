@@ -1,0 +1,11 @@
+{
+  "root_cause": "training data refresh shifted applicant mix; parity guardrail was advisory-only",
+  "corrective_actions": [
+    {"action": "promote parity guardrail to blocking in the deployment pipeline",
+     "owner": "ml-platform", "due_date": "2026-10-15"},
+    {"action": "retrain v4 on pinned snapshot; require parity evidence before approval",
+     "owner": "ml-platform", "due_date": "2026-11-01"}
+  ],
+  "verification_method": "rerun disparity-monitor on v4 shadow traffic for 14 days; parity diff < 0.10",
+  "approved_by": "governance-board"
+}

@@ -1,0 +1,5 @@
+[
+  {"role": "model_owner", "name": "ML Platform", "contact": "ml-platform@example.org"},
+  {"role": "team_lead", "name": "A. Rao", "contact": "a.rao@example.org"},
+  {"role": "governance_officer", "name": "Governance Board", "contact": "governance@example.org"}
+]

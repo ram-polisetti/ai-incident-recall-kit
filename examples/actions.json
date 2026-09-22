@@ -1,0 +1,7 @@
+{
+  "root_cause": "training data refresh shifted applicant mix; parity guardrail was advisory-only",
+  "actions": [
+    "pinned training data snapshot for v4 retrain",
+    "parity guardrail promoted from advisory to blocking"
+  ]
+}

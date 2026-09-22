@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-incident-recall-kit"
+version = "0.1.0"
+description = "Governed recall pipeline for AI drift incidents: freeze the endpoint, roll back to the last approved model version, notify the owner chain, run a strict incident lifecycle, and file a regulator-shaped serious-incident report. Hash-chained audit log; closes only with a corrective-action plan."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+
+[project.scripts]
+recall = "recallkit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
