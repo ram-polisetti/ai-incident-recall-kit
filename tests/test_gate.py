@@ -62,3 +62,16 @@ def test_template_has_required_shape():
     assert set(t) == {"root_cause", "corrective_actions",
                       "verification_method", "approved_by"}
     assert set(t["corrective_actions"][0]) == {"action", "owner", "due_date"}
+
+
+@pytest.mark.parametrize('due', ['2026-99-99', '2026-02-29', '2026-04-31', '0000-01-01'])
+def test_impossible_due_date_fails(due):
+    cap = _good_cap()
+    cap['corrective_actions'][0]['due_date'] = due
+    assert any('valid calendar date' in p for p in validate_cap(cap))
+
+
+def test_leap_year_due_date_passes():
+    cap = _good_cap()
+    cap['corrective_actions'][0]['due_date'] = '2028-02-29'
+    assert validate_cap(cap) == []
