@@ -35,6 +35,8 @@ def validate_cap(cap: dict[str, Any] | None) -> list[str]:
     problems: list[str] = []
     if not cap:
         return ["no corrective-action plan attached"]
+    if not isinstance(cap, dict):
+        return ["corrective-action plan must be an object"]
     if not isinstance(cap.get("root_cause"), str) or not cap["root_cause"].strip():
         problems.append("root_cause must be a non-empty string")
     actions = cap.get("corrective_actions")
