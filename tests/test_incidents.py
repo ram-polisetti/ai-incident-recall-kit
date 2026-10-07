@@ -46,7 +46,7 @@ def test_full_lifecycle_in_order(tmp_path):
     store.transition("INC-1", "contained")
     store.record_remediation("INC-1", {"actions": ["fix"]})
     store.transition("INC-1", "remediated")
-    store.attach_cap("INC-1", {"root_cause": "x"})
+    store.attach_cap("INC-1", _valid_cap())
     final = store.transition("INC-1", "closed")
     assert final["state"] == "closed"
 
@@ -86,6 +86,7 @@ def test_closed_is_terminal(tmp_path):
     store.transition("INC-1", "contained")
     store.record_remediation("INC-1", {"actions": []})
     store.transition("INC-1", "remediated")
+    store.attach_cap("INC-1", _valid_cap())
     store.transition("INC-1", "closed")
     with pytest.raises(IncidentError):
         store.transition("INC-1", "triaged")
@@ -110,3 +111,38 @@ def test_lifecycle_constant_matches_spec():
     assert LIFECYCLE == ("detected", "triaged", "contained",
                          "remediated", "closed")
     assert TRANSITIONS["remediated"] == ("closed",)
+
+
+def _valid_cap():
+    return {"root_cause": "x", "corrective_actions": [
+        {"action": "fix", "owner": "tester", "due_date": "2026-10-07"}],
+        "verification_method": "regression test", "approved_by": "tester"}
+
+
+def test_library_rejects_impossible_cap_date(tmp_path):
+    store = IncidentStore(tmp_path / "s")
+    store.open("I", _alert())
+    cap = _valid_cap()
+    cap["corrective_actions"][0]["due_date"] = "2026-99-99"
+    with pytest.raises(IncidentError, match="valid calendar date"):
+        store.attach_cap("I", cap)
+    assert store.get("I")["corrective_action_plan"] is None
+    assert store.audit.events_for("I")[-1]["event"] == "gate.refused"
+
+
+@pytest.mark.parametrize("legacy_cap", [None, {"root_cause": "x"}])
+def test_library_refuses_closure_without_valid_cap(tmp_path, legacy_cap):
+    store = IncidentStore(tmp_path / "s")
+    store.open("I", _alert())
+    store.transition("I", "triaged")
+    store.record_freeze("I", {"mode": "test"})
+    store.record_rollback("I", {"from_version": 2, "to_version": 1})
+    store.transition("I", "contained")
+    store.transition("I", "remediated")
+    state = store.get("I")
+    state["corrective_action_plan"] = legacy_cap
+    store._write_state("I", state)
+    with pytest.raises(IncidentError, match="cannot close"):
+        store.transition("I", "closed")
+    assert store.get("I")["state"] == "remediated"
+    assert store.audit.verify()["ok"]
