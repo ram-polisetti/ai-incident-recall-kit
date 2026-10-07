@@ -20,6 +20,7 @@ Required CAP shape:
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Any
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -34,6 +35,8 @@ def validate_cap(cap: dict[str, Any] | None) -> list[str]:
     problems: list[str] = []
     if not cap:
         return ["no corrective-action plan attached"]
+    if not isinstance(cap, dict):
+        return ["corrective-action plan must be an object"]
     if not isinstance(cap.get("root_cause"), str) or not cap["root_cause"].strip():
         problems.append("root_cause must be a non-empty string")
     actions = cap.get("corrective_actions")
@@ -52,6 +55,12 @@ def validate_cap(cap: dict[str, Any] | None) -> list[str]:
             if due and not DATE_RE.match(str(due)):
                 problems.append(
                     f"corrective_actions[{i}].due_date must be YYYY-MM-DD")
+            elif due:
+                try:
+                    date.fromisoformat(str(due))
+                except ValueError:
+                    problems.append(
+                        f"corrective_actions[{i}].due_date must be a valid calendar date")
     if not isinstance(cap.get("verification_method"), str) \
             or not cap["verification_method"].strip():
         problems.append("verification_method must be a non-empty string")
