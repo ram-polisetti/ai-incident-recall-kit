@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .audit import AuditLog
+from .gate import validate_cap
 
 LIFECYCLE = ("detected", "triaged", "contained", "remediated", "closed")
 
@@ -116,6 +117,12 @@ class IncidentStore:
                 raise IncidentError(
                     f"cannot contain: missing {', '.join(missing)} — "
                     f"freeze the endpoint and record a rollback first")
+        if to_state == "closed":
+            problems = validate_cap(state.get("corrective_action_plan"))
+            if problems:
+                self._log(incident_id, "gate.refused",
+                          {"reason": "; ".join(problems)}, actor)
+                raise IncidentError("cannot close: " + "; ".join(problems))
         state["state"] = to_state
         self._write_state(incident_id, state)
         self._log(incident_id, f"incident.{to_state}",
@@ -168,6 +175,11 @@ class IncidentStore:
     def attach_cap(self, incident_id: str, cap: dict[str, Any],
                    actor: str = "recallkit") -> dict[str, Any]:
         state = self.get(incident_id)
+        problems = validate_cap(cap)
+        if problems:
+            self._log(incident_id, "gate.refused",
+                      {"reason": "; ".join(problems)}, actor)
+            raise IncidentError("cannot attach CAP: " + "; ".join(problems))
         state["corrective_action_plan"] = cap
         self._write_state(incident_id, state)
         self._log(incident_id, "cap.attached",
